@@ -5,6 +5,7 @@ import com.mybankingapp.accountservices.model.Account;
 import com.mybankingapp.accountservices.service.AccountService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +20,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/accounts")
 @RequiredArgsConstructor
+@Slf4j
 public class AccountController {
 
     private final AccountService accountService;
@@ -32,7 +34,10 @@ public class AccountController {
      */
     @PostMapping("/register")
     public ResponseEntity<Account> createAccount(@Valid @RequestBody AccountCreationRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(accountService.createAccount(request));
+        log.info(">>> Solicitud de creación de cuenta recibida");
+        Account created = accountService.createAccount(request);
+        log.info("<<< Cuenta creada: {}", created.getId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     /**
@@ -43,7 +48,10 @@ public class AccountController {
      */
     @GetMapping("/{id}/balance")
     public ResponseEntity<BigDecimal> getBalance(@PathVariable UUID id) {
-        return ResponseEntity.ok(accountService.getBalance(id));
+        log.info(">>> Consultando balance para cuenta {}", id);
+        BigDecimal balance = accountService.getBalance(id);
+        log.info("<<< Balance obtenido para cuenta {}", id);
+        return ResponseEntity.ok(balance);
     }
 
     /**
@@ -54,6 +62,9 @@ public class AccountController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<Account> getAccount(@PathVariable UUID id) {
-        return ResponseEntity.ok(accountService.getAccount(id));
+        log.info(">>> Consultando datos de la cuenta {}", id);
+        Account account = accountService.getAccount(id);
+        log.info("<<< Cuenta {} recuperada", id);
+        return ResponseEntity.ok(account);
     }
 }

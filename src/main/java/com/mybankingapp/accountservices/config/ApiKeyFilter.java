@@ -48,13 +48,15 @@ public class ApiKeyFilter extends OncePerRequestFilter {
 
         String apiKeyHeader = request.getHeader(API_KEY_HEADER);
 
-        if (apiKeyHeader == null) {
-            sendUnauthorizedResponse.sendUnauthorizedResponse(response, "Unauthorized: No API key found in request headers");
+        if (apiKeyHeader == null || API_KEY == null) {
+            sendUnauthorizedResponse.sendUnauthorizedResponse(response,
+                    "Unauthorized: No API key found in request headers");
             return;
         }
 
         if (!API_KEY.equals(apiKeyHeader)) {
-            sendUnauthorizedResponse.sendUnauthorizedResponse(response, "Unauthorized: Invalid API key");
+            sendUnauthorizedResponse.sendUnauthorizedResponse(response,
+                    "Unauthorized: Invalid API key");
             return;
         }
 

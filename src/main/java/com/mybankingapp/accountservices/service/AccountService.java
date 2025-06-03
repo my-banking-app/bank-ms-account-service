@@ -4,6 +4,7 @@ import com.mybankingapp.accountservices.dto.AccountCreationRequest;
 import com.mybankingapp.accountservices.model.Account;
 import com.mybankingapp.accountservices.repository.AccountRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -16,6 +17,7 @@ import java.util.UUID;
  * Service class for managing accounts.
  * Provides functionality for creating accounts, retrieving account details, and checking balances.
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AccountService {
@@ -56,7 +58,13 @@ public class AccountService {
                 .active(true)
                 .build();
 
-        return accountRepository.save(account);
+        log.info(">>> Creación de cuenta iniciada para customerId: {}", request.getCustomerId());
+        
+        Account savedAccount = accountRepository.save(account);
+
+        log.info("<<< {} Cuenta creada exitosamente con número: {}", savedAccount.getId(), savedAccount.getAccountNumber());
+
+        return savedAccount;
     }
 
     /**

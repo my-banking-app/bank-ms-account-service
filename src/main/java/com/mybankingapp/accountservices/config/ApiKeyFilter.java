@@ -1,6 +1,7 @@
 package com.mybankingapp.accountservices.config;
 
 import com.mybankingapp.accountservices.utils.SendUnauthorizedResponse;
+import lombok.extern.slf4j.Slf4j;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,6 +15,7 @@ import java.io.IOException;
  * Filter that checks for the presence and validity of an API key in the request headers.
  * Extends the OncePerRequestFilter to ensure that the filter is executed only once per request.
  */
+@Slf4j
 public class ApiKeyFilter extends OncePerRequestFilter {
 
     /**
@@ -48,16 +50,21 @@ public class ApiKeyFilter extends OncePerRequestFilter {
 
         String apiKeyHeader = request.getHeader(API_KEY_HEADER);
 
+        log.info(">>> Validando API key para la solicitud {}", request.getRequestURI());
+
         if (apiKeyHeader == null) {
+            log.warn("<<< No se encontró API key en la solicitud");
             sendUnauthorizedResponse.sendUnauthorizedResponse(response, "Unauthorized: No API key found in request headers");
             return;
         }
 
         if (!API_KEY.equals(apiKeyHeader)) {
+            log.warn("<<< API key inválida");
             sendUnauthorizedResponse.sendUnauthorizedResponse(response, "Unauthorized: Invalid API key");
             return;
         }
 
+        log.info("<<< API key válida, continuando con la cadena de filtros");
         filterChain.doFilter(request, response);
     }
 

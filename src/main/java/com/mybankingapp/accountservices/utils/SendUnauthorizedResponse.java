@@ -2,6 +2,7 @@ package com.mybankingapp.accountservices.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -10,6 +11,7 @@ import java.util.Map;
 /**
  * Utility class for sending unauthorized responses.
  */
+@Slf4j
 public class SendUnauthorizedResponse {
 
     /**
@@ -20,6 +22,7 @@ public class SendUnauthorizedResponse {
      * @throws IOException if an input or output exception occurs
      */
     public void sendUnauthorizedResponse(HttpServletResponse response, String message) throws IOException {
+        log.warn("Enviando respuesta no autorizada: {}", message);
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json");
 

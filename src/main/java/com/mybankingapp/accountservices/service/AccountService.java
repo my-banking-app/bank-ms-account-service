@@ -75,9 +75,12 @@ public class AccountService {
      * @throws RuntimeException if the account is not found or is inactive.
      */
     public BigDecimal getBalance(UUID id) {
-        return accountRepository.findByIdAndActiveTrue(id)
+        log.info(">>> Buscando balance para cuenta {}", id);
+        BigDecimal balance = accountRepository.findByIdAndActiveTrue(id)
                 .map(Account::getBalance)
                 .orElseThrow(() -> new RuntimeException("Account not found"));
+        log.info("<<< Balance encontrado para cuenta {}", id);
+        return balance;
     }
 
     /**
@@ -88,7 +91,10 @@ public class AccountService {
      * @throws RuntimeException if the account is not found or is inactive.
      */
     public Account getAccount(UUID id) {
-        return accountRepository.findByIdAndActiveTrue(id)
+        log.info(">>> Buscando cuenta {}", id);
+        Account account = accountRepository.findByIdAndActiveTrue(id)
                 .orElseThrow(() -> new RuntimeException("Account not found"));
+        log.info("<<< Cuenta {} encontrada", id);
+        return account;
     }
 }

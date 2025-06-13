@@ -1,19 +1,17 @@
 package com.mybankingapp.accountservices.config;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.cors.CorsConfigurationSource;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
+@Import(SecurityConfig.class)
 public class SecurityConfigTest {
 
-    @Autowired
-    private SecurityConfig securityConfig;
+    private final SecurityConfig securityConfig = new SecurityConfig();
 
     @Test
     public void testApiKeyFilterBean() {
@@ -25,7 +23,7 @@ public class SecurityConfigTest {
     public void testPasswordEncoderBean() {
         PasswordEncoder passwordEncoder = securityConfig.passwordEncoder();
         assertNotNull(passwordEncoder, "PasswordEncoder should not be null");
-        assertTrue(passwordEncoder instanceof org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder,
+        assertTrue(passwordEncoder instanceof BCryptPasswordEncoder,
                 "PasswordEncoder should be an instance of BCryptPasswordEncoder");
     }
 
@@ -34,6 +32,4 @@ public class SecurityConfigTest {
         CorsConfigurationSource corsConfigurationSource = securityConfig.corsConfigurationSource();
         assertNotNull(corsConfigurationSource, "CorsConfigurationSource should not be null");
     }
-
-    // Removed the testSecurityFilterChain method as it was causing most of the issues
 }

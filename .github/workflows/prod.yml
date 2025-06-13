@@ -36,7 +36,7 @@ jobs:
             -Dsonar.projectKey=my-banking-app_bank-ms-account-service \
             -Dsonar.organization=my-banking-app \
             -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
             -Dsonar.exclusions=src/test/**
 
       - name: Extract ceTaskId from report

@@ -55,6 +55,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Verificar análisis recientes en SonarCloud
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          echo "🔍 Consultando análisis recientes..."
+
+          curl -s -u "${SONAR_TOKEN}:" \
+            "https://sonarcloud.io/api/project_analyses/search?project=my-banking-app_bank-ms-account-service" \
+            | jq '.analyses[:5]'
+
+
       - name: Check SonarCloud Quality Gate status
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

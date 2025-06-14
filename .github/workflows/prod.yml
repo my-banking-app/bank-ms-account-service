@@ -1,8 +1,8 @@
 name: CI/CD Pipeline - Account Service
 
 on:
-  push:
-    branches: [BANK-**, BANK-*/*]
+  pull_request:
+    branches: [main]
 
 jobs:
   analyze:

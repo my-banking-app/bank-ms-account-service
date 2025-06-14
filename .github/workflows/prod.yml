@@ -2,7 +2,7 @@ name: CI/CD Pipeline - Account Service
 
 on:
   push:
-    branches: [main, 'BANK_**', 'BANK_*/*']
+    branches: [main, 'BANK_**', 'BANK_*/*', 'BANK-*', 'BANK-*/*']
 
 jobs:
   analyze:

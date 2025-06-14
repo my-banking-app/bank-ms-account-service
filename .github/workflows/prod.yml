@@ -31,23 +31,19 @@ jobs:
       - name: Build with Maven (para Jacoco)
         run: mvn clean verify
 
-      - name: Install SonarScanner
-        run: npm install -g sonar-scanner
+      - name: Install SonarScanner CLI
+        run: |
+          curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.2.4997-linux.zip
+          unzip sonar-scanner.zip
+          sudo mv sonar-scanner-5.0.2.4997-linux /opt/sonar-scanner
+          echo "/opt/sonar-scanner/bin" >> $GITHUB_PATH
 
-      - name: Run SonarScanner
+      - name: Run SonarScanner CLI
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          sonar-scanner \
-            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
-
-      - name: Extract ceTaskId from report
-        id: extract-task-id
-        run: |
-          echo "⌛ Extrayendo taskId de SonarCloud..."
-          taskId=$(grep 'ceTaskId' target/sonar/report-task.txt | cut -d'=' -f2)
-          echo "taskId=$taskId"
-          echo "task-id=$taskId" >> $GITHUB_OUTPUT
+          /opt/sonar-scanner/bin/sonar-scanner \
+            -Dsonar.login=${SONAR_TOKEN}
 
   deploy:
     name: Deploy to VPS
@@ -63,33 +59,23 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          taskId="${{ needs.analyze.outputs.task-id }}"
+          echo "🔎 Obteniendo último análisis de SonarCloud..."
 
-          if [ -z "$taskId" ]; then
-            echo "❌ No se pudo recuperar el taskId del análisis SonarCloud"
+          analysisId=$(curl -s -u "${SONAR_TOKEN}:" \
+            "https://sonarcloud.io/api/project_analyses/search?project=my-banking-app_bank-ms-account-service" \
+            | jq -r '.analyses[0].analysisId')
+
+          if [ -z "$analysisId" ]; then
+            echo "❌ No se pudo recuperar analysisId"
             exit 1
           fi
 
-          echo "⌛ Esperando análisis en SonarCloud para taskId: $taskId"
-
-          status="PENDING"
-          attempts=0
-          while [[ "$status" != "SUCCESS" && $attempts -lt 20 ]]; do
-            sleep 5
-            status=$(curl -s -u "${SONAR_TOKEN}:" "https://sonarcloud.io/api/ce/task?id=${taskId}" | jq -r '.task.status')
-            echo "⏳ Estado actual del análisis: $status (intento $((attempts+1)))"
-            attempts=$((attempts+1))
-          done
-
-          if [[ "$status" != "SUCCESS" ]]; then
-            echo "❌ El análisis en SonarCloud no finalizó correctamente"
-            exit 1
-          fi
-
-          analysisId=$(curl -s -u "${SONAR_TOKEN}:" "https://sonarcloud.io/api/ce/task?id=${taskId}" | jq -r '.task.analysisId')
           echo "🔍 analysisId: $analysisId"
 
-          qualityGate=$(curl -s -u "${SONAR_TOKEN}:" "https://sonarcloud.io/api/qualitygates/project_status?analysisId=${analysisId}" | jq -r '.projectStatus.status')
+          qualityGate=$(curl -s -u "${SONAR_TOKEN}:" \
+            "https://sonarcloud.io/api/qualitygates/project_status?analysisId=${analysisId}" \
+            | jq -r '.projectStatus.status')
+
           echo "🔍 Estado del Quality Gate: $qualityGate"
 
           if [ "$qualityGate" != "OK" ]; then

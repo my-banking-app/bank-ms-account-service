@@ -31,15 +31,19 @@ jobs:
       - name: Build with Maven (para Jacoco)
         run: mvn clean verify
 
-      - name: Install SonarScanner
-        run: npm install -g sonar-scanner
+      - name: Install SonarScanner CLI
+        run: |
+          curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.2.4997-linux.zip
+          unzip sonar-scanner.zip
+          sudo mv sonar-scanner-5.0.1.3006-linux /opt/sonar-scanner
+          echo "/opt/sonar-scanner/bin" >> $GITHUB_PATH
 
-      - name: Run SonarScanner
+      - name: Run SonarScanner CLI
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          sonar-scanner \
-            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+          /opt/sonar-scanner/bin/sonar-scanner \
+          -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
       - name: Extract ceTaskId from report
         id: extract-task-id

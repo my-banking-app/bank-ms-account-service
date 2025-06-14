@@ -44,7 +44,7 @@ jobs:
         run: |
           /opt/sonar-scanner/bin/sonar-scanner \
             -Dsonar.login=${SONAR_TOKEN} \
-            -Dsonar.projectBaseDir=.
+            -X
 
       - name: Extract ceTaskId from report
         id: extract-task-id

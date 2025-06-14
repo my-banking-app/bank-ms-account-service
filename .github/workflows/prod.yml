@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
 
     outputs:
-      task-id: ${{ steps.extract-task-id.outputs.task-id }}
+      analysis-id: ${{ steps.extract-analysis-id.outputs.analysis-id }}
 
     steps:
       - name: Checkout code
@@ -45,6 +45,18 @@ jobs:
           /opt/sonar-scanner/bin/sonar-scanner \
             -Dsonar.login=${SONAR_TOKEN}
 
+      - name: Obtener último analysisId
+        id: extract-analysis-id
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          echo "⌛ Obteniendo último analysisId desde la API..."
+          analysisId=$(curl -s -u "${SONAR_TOKEN}:" \
+            "https://sonarcloud.io/api/project_analyses/search?project=my-banking-app_bank-ms-account-service" \
+            | jq -r '.analyses[0].key')
+
+          echo "analysis-id=$analysisId" >> $GITHUB_OUTPUT
+
   deploy:
     name: Deploy to VPS
     runs-on: ubuntu-latest
@@ -55,35 +67,27 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Check SonarCloud Quality Gate status
+      - name: Verificar estado del Quality Gate
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          echo "🔎 Obteniendo último análisis de SonarCloud..."
-
-          analysisId=$(curl -s -u "${SONAR_TOKEN}:" \
-            "https://sonarcloud.io/api/project_analyses/search?project=my-banking-app_bank-ms-account-service" \
-            | jq -r '.analyses[0].analysisId')
+          analysisId="${{ needs.analyze.outputs.analysis-id }}"
 
           if [ -z "$analysisId" ]; then
-            echo "❌ No se pudo recuperar analysisId"
+            echo "❌ No se pudo obtener el analysisId"
             exit 1
           fi
 
-          echo "🔍 analysisId: $analysisId"
-
-          qualityGate=$(curl -s -u "${SONAR_TOKEN}:" \
+          status=$(curl -s -u "${SONAR_TOKEN}:" \
             "https://sonarcloud.io/api/qualitygates/project_status?analysisId=${analysisId}" \
             | jq -r '.projectStatus.status')
 
-          echo "🔍 Estado del Quality Gate: $qualityGate"
+          echo "🔍 Estado del Quality Gate: $status"
 
-          if [ "$qualityGate" != "OK" ]; then
-            echo "❌ El Quality Gate falló. Deteniendo el pipeline."
+          if [ "$status" != "OK" ]; then
+            echo "❌ Quality Gate falló. Cancelando pipeline."
             exit 1
           fi
-
-          echo "✅ Quality Gate aprobado. Continuando con el despliegue."
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1

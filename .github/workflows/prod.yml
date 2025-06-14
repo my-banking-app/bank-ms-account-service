@@ -28,11 +28,18 @@ jobs:
           java-version: 21
           distribution: 'temurin'
 
-      - name: Build and analyze with SonarCloud
+      - name: Build with Maven (para Jacoco)
+        run: mvn clean verify
+
+      - name: Install SonarScanner
+        run: npm install -g sonar-scanner
+
+      - name: Run SonarScanner
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
+          sonar-scanner \
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
       - name: Extract ceTaskId from report
         id: extract-task-id

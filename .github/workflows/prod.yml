@@ -2,13 +2,9 @@ name: CI/CD Pipeline - Account Service
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
-    branches:
-      - 'main'
-      - 'BANK_**'
-      - 'BANK_*/*'
+    branches: ['main', 'BANK_**', 'BANK_*/*']
 
 jobs:
   analyze:
@@ -31,11 +27,11 @@ jobs:
       - name: Build with Maven (para Jacoco)
         run: mvn clean verify
 
-      - name: Install SonarScanner CLI
+      - name: Install SonarScanner CLI (silent)
         run: |
           curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.2.4997-linux.zip
-          unzip sonar-scanner.zip
-          sudo mv sonar-scanner-5.0.2.4997-linux /opt/sonar-scanner
+          unzip -qq sonar-scanner.zip
+          sudo mv sonar-scanner-5.0.2.4997-linux /opt/sonar-scanner > /dev/null 2>&1
           echo "/opt/sonar-scanner/bin" >> $GITHUB_PATH
 
       - name: Run SonarScanner CLI
@@ -55,7 +51,27 @@ jobs:
             "https://sonarcloud.io/api/project_analyses/search?project=my-banking-app_bank-ms-account-service" \
             | jq -r '.analyses[0].key')
 
+          if [ -z "$analysisId" ]; then
+            echo "❌ No se pudo obtener el analysisId"
+            exit 1
+          fi
+
           echo "analysis-id=$analysisId" >> $GITHUB_OUTPUT
+
+      - name: Validar Quality Gate (fail early)
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          analysisId="${{ steps.extract-analysis-id.outputs.analysis-id }}"
+          status=$(curl -s -u "${SONAR_TOKEN}:" \
+            "https://sonarcloud.io/api/qualitygates/project_status?analysisId=${analysisId}" \
+            | jq -r '.projectStatus.status')
+
+          echo "🔍 Estado del Quality Gate: $status"
+          if [ "$status" != "OK" ]; then
+            echo "❌ Quality Gate falló. Cancelando pipeline."
+            exit 1
+          fi
 
   deploy:
     name: Deploy to VPS
@@ -66,28 +82,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Verificar estado del Quality Gate
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          analysisId="${{ needs.analyze.outputs.analysis-id }}"
-
-          if [ -z "$analysisId" ]; then
-            echo "❌ No se pudo obtener el analysisId"
-            exit 1
-          fi
-
-          status=$(curl -s -u "${SONAR_TOKEN}:" \
-            "https://sonarcloud.io/api/qualitygates/project_status?analysisId=${analysisId}" \
-            | jq -r '.projectStatus.status')
-
-          echo "🔍 Estado del Quality Gate: $status"
-
-          if [ "$status" != "OK" ]; then
-            echo "❌ Quality Gate falló. Cancelando pipeline."
-            exit 1
-          fi
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1

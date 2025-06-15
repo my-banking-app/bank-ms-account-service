@@ -10,6 +10,6 @@ jobs:
     with:
       service_name:      account-service
       sonar_project_key: my-banking-app_bank-ms-account-service
-      docker_image:      ${{ secrets.DOCKER_USERNAME }}/account-service:prod
+      docker_image:      account-service:prod
       container_port:    8083
     secrets: inherit

@@ -40,7 +40,7 @@ class ApiKeyFilterTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        ReflectionTestUtils.setField(apiKeyFilter, "API_KEY", "expected-api-key");
+        ReflectionTestUtils.setField(apiKeyFilter, "apikey", "expected-api-key");
     }
 
     @Test

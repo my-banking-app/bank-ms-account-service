@@ -14,6 +14,7 @@ jobs:
       service-name: "Account Service"
       docker-image-name: "account-service"
       service-port: "8083"
+      sonar-project-key: "my-banking-app_bank-ms-account-service"
       java-version: "21"
       maven-command: "mvn clean verify"
     secrets:

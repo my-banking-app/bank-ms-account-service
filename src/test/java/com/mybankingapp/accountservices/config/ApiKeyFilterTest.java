@@ -40,7 +40,7 @@ class ApiKeyFilterTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        ReflectionTestUtils.setField(apiKeyFilter, "API_KEY", "expected-api-key");
+        ReflectionTestUtils.setField(apiKeyFilter, "apikey", "expected-api-key");
     }
 
     @Test
@@ -72,4 +72,39 @@ class ApiKeyFilterTest {
         verify(sendUnauthorizedResponse, times(1)).sendUnauthorizedResponse(response, "Unauthorized: Invalid API key");
         verify(filterChain, never()).doFilter(request, response);
     }
+
+    @Test
+    void shouldNotFilter_deberiaRetornarTrueParaRutaQueNoEmpiezaConApi() {
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        when(request.getRequestURI()).thenReturn("/health");
+
+        ApiKeyFilter filter = new ApiKeyFilter() {
+            @Override
+            public boolean shouldNotFilter(HttpServletRequest request) {
+                return super.shouldNotFilter(request);
+            }
+        };
+
+        boolean resultado = filter.shouldNotFilter(request);
+
+        assert(resultado);
+    }
+
+    @Test
+    void shouldNotFilter_deberiaRetornarFalseParaRutaQueEmpiezaConApi() {
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        when(request.getRequestURI()).thenReturn("/api/v1/accounts");
+
+        ApiKeyFilter filter = new ApiKeyFilter() {
+            @Override
+            public boolean shouldNotFilter(HttpServletRequest request) {
+                return super.shouldNotFilter(request);
+            }
+        };
+
+        boolean resultado = filter.shouldNotFilter(request);
+
+        assert(!resultado);
+    }
+
 }

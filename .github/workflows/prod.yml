@@ -1,15 +1,32 @@
-name: Account Service CI/CD
+# .github/workflows/account-service.yml
+name: CI/CD Pipeline - Account Service
 
 on:
-  push:         { branches: [main] }
-  pull_request: { branches: [main] }
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
   pipeline:
-    uses: my-banking-app/ci-templates/.github/workflows/java-ms-ci-cd.yml@v1.0.0
+    uses: my-banking-app/ci-templates/.github/workflows/java-ms-ci-cd.yml@v1.0.1
     with:
-      service_name:      account-service
-      sonar_project_key: my-banking-app_bank-ms-account-service
-      docker_image:      ${{ secrets.DOCKER_USERNAME }}/account-service:prod
-      container_port:    8083
-    secrets: inherit
+      service-name: "Account Service"
+      docker-image-name: "account-service"
+      service-port: "8083"
+      sonar-project-key: "my-banking-app_bank-ms-account-service"
+      java-version: "21"
+      maven-command: "mvn clean verify"
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      VPS_HOST: ${{ secrets.VPS_HOST }}
+      VPS_USERNAME: ${{ secrets.VPS_USERNAME }}
+      VPS_PRIVATE_KEY: ${{ secrets.VPS_PRIVATE_KEY }}
+      SPRING_DATASOURCE_URL: ${{ secrets.SPRING_DATASOURCE_URL }}
+      DB_NAME: ${{ secrets.DB_NAME }}
+      DB_USER: ${{ secrets.DB_USER }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      API_KEY: ${{ secrets.API_KEY }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}

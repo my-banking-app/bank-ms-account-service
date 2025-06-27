@@ -9,7 +9,7 @@ on:
 
 jobs:
   pipeline:
-    uses: my-banking-app/ci-templates/.github/workflows/java-ms-ci-cd.yml@v1.0.1
+    uses: my-banking-app/ci-templates/.github/workflows/java-ms-ci-cd.yml@v1.0.3
     with:
       service-name: "Account Service"
       docker-image-name: "account-service"
